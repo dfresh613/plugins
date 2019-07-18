@@ -23,9 +23,7 @@ class CLightning_autopilot(Autopilot):
         retrieve the nodeids of the ln seed nodes from lseed.bitcoinstats.com
         """
         domain = "lseed.bitcoinstats.com"
-        print("attempting to resolve seeds from  {}".format(domain))
         srv_records = dns.resolver.query(domain,"SRV")
-        print("records fetched successfully")
         res = []
         for srv in srv_records:
             bech32 = str(srv.target).rstrip(".").split(".")[0]
@@ -69,7 +67,6 @@ class CLightning_autopilot(Autopilot):
 
         nodes = []
         print("Attempt RPC-call to download nodes from the lightning network")
-        print("Test Message")
         try:
             while len(nodes) == 0:
                 peers = self.__rpc_interface.listpeers()["peers"]
