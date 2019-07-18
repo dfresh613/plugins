@@ -3,10 +3,10 @@
 from bech32 import bech32_decode, CHARSET, convertbits
 from lib_autopilot import Autopilot, Strategy
 from lightning import LightningRpc, Plugin
-
+import random
 import math
 import networkx as nx
-
+import dns.resolver
 
 class CLightning_autopilot(Autopilot):
 
@@ -22,12 +22,15 @@ class CLightning_autopilot(Autopilot):
         retrieve the nodeids of the ln seed nodes from lseed.bitcoinstats.com
         """
         domain = "lseed.bitcoinstats.com"
+        print("attempting to resolve seeds from  {}".format(domain))
         srv_records = dns.resolver.query(domain,"SRV")
+        print("records fetched successfully")
         res = []
         for srv in srv_records:
             bech32 = str(srv.target).rstrip(".").split(".")[0]
             data = bech32_decode(bech32)[1]
             decoded = convertbits(data, 5, 4)
+            print("attempting to peer with decoded: {}".format(decoded))
             res.append("".join(
                 ['{:1x}'.format(integer) for integer in decoded])[:-1])
         return res
@@ -46,7 +49,7 @@ class CLightning_autopilot(Autopilot):
                 # FIXME: better strategy than sleep(2) for building up
                 time.sleep(2)
         except:
-            pass
+            raise
 
     def __download_graph(self):
         """
@@ -66,6 +69,7 @@ class CLightning_autopilot(Autopilot):
         try:
             while len(nodes) == 0:
                 peers = self.__rpc_interface.listpeers()["peers"]
+                print("peers found: {}".format(peers))
                 if len(peers) < 1:
                     self.__connect_to_seeds()
                 nodes = self.__rpc_interface.listnodes()["nodes"]
